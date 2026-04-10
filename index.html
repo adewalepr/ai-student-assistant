@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>AI Student Assistant</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <header class="hero">
+    <h1><i class="fas fa-graduation-cap"></i> AI Student Assistant</h1>
+    <p>Your smart study companion powered by AI</p>
+  </header>
+
+  <main class="container">
+    <!-- Chat Section -->
+    <section class="card" id="chat-section">
+      <h2><i class="fas fa-comments"></i> Ask AI Anything</h2>
+      <label for="chatInput">Your question:</label>
+      <div class="input-group">
+        <input id="chatInput" placeholder="e.g., Explain quantum physics..." />
+        <button onclick="sendMessage()" id="sendBtn"><i class="fas fa-paper-plane"></i> Send</button>
+      </div>
+      <div id="chatResponse" class="output"></div>
+    </section>
+
+    <!-- Summarizer Section -->
+    <section class="card" id="summarize-section">
+      <h2><i class="fas fa-file-alt"></i> Summarize Notes</h2>
+      <label for="notes">Paste your notes:</label>
+      <textarea id="notes" rows="6" placeholder="Paste lecture notes, articles, or any text..."></textarea>
+      <button onclick="summarize()"><i class="fas fa-magic"></i> Generate Summary</button>
+      <div id="summary" class="output"></div>
+    </section>
+
+    <!-- Reminder Section -->
+    <section class="card" id="reminder-section">
+      <h2><i class="fas fa-clock"></i> Set Study Reminder</h2>
+      <label for="task">Task:</label>
+      <input id="task" placeholder="e.g., Review math chapter 3" />
+      <label for="time">Time:</label>
+      <input type="time" id="time" />
+      <button onclick="setReminder()"><i class="fas fa-bell"></i> Set Reminder</button>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2024 AI Student Assistant. Built with ❤️ for better learning.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
