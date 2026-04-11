@@ -1,9 +1,8 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-import OpenAI from "openai";
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
 
-dotenv.config();
+const OpenAI = require("openai");
 
 const app = express();
 app.use(cors());
@@ -13,47 +12,18 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// 🔥 AI Chat
-app.post("/chat", async (req, res) => {
-  try {
-    const { message } = req.body;
+const PORT = process.env.PORT || 5000;
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: "You are a helpful student assistant. Explain clearly and simply.",
-        },
-        { role: "user", content: message }
-      ],
-    });
-
-    res.json({ reply: response.choices[0].message.content });
-  } catch (err) {
-    res.json({ reply: "Error connecting to AI." });
-  }
+app.get("/", (req, res) => {
+  res.send("API is running...");
 });
 
-// 🔥 Summarizer
-app.post("/summarize", async (req, res) => {
-  try {
-    const { text } = req.body;
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "user",
-          content: `Summarize this into clear bullet points:\n${text}`,
-        },
-      ],
-    });
-
-    res.json({ summary: response.choices[0].message.content });
-  } catch (err) {
-    res.json({ summary: "Error summarizing text." });
-  }
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
 
-app.listen(5000, () => console.log("Server running on port 5000"));
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

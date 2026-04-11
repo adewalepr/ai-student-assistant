@@ -1,4 +1,4 @@
-const API = "http://localhost:5000";
+const API = "https://your-render-url.onrender.com";
 
 // Chat - Enhanced with loading spinner & error handling
 async function sendMessage() {
