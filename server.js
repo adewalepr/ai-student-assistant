@@ -9,9 +9,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ Check API key exists
+// Check API key
 if (!process.env.OPENAI_API_KEY) {
-  console.error("❌ OPENAI_API_KEY is missing!");
+  console.error("Missing OPENAI_API_KEY");
   process.exit(1);
 }
 
@@ -19,7 +19,12 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-// 🔥 Chat Route
+// Home route
+app.get("/", (req, res) => {
+  res.send("API is running...");
+});
+
+// Chat route
 app.post("/chat", async (req, res) => {
   try {
     const { message } = req.body;
@@ -29,7 +34,7 @@ app.post("/chat", async (req, res) => {
       messages: [
         {
           role: "system",
-          content: "You are a helpful student assistant. Explain clearly and simply.",
+          content: "You are a helpful student assistant. Explain simply.",
         },
         { role: "user", content: message },
       ],
@@ -42,7 +47,7 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-// 🔥 Summarizer Route
+// Summarize route
 app.post("/summarize", async (req, res) => {
   try {
     const { text } = req.body;
@@ -64,9 +69,9 @@ app.post("/summarize", async (req, res) => {
   }
 });
 
-// ✅ ONLY ONE PORT DECLARATION
+// PORT (ONLY ONCE!)
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log("Server running on port " + PORT);
 });
