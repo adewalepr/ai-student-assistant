@@ -3,23 +3,11 @@
   "rewrites": [
     {
       "source": "/chat",
-      "destination": "/server.js"
+      "destination": "/api/chat"
     },
     {
       "source": "/summarize",
-      "destination": "/server.js"
-    },
-    {
-      "source": "/api/chat",
-      "destination": "/server.js"
-    },
-    {
-      "source": "/api/summarize",
-      "destination": "/server.js"
-    },
-    {
-      "source": "/health",
-      "destination": "/server.js"
+      "destination": "/api/summarize"
     }
   ]
 }
