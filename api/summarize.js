@@ -1,5 +1,30 @@
 import OpenAI from "openai";
 
+function getAIClient() {
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
+
+  if (geminiKey) {
+    return {
+      client: new OpenAI({
+        apiKey: geminiKey,
+        baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+      }),
+      model: "gemini-2.5-flash",
+      provider: "Gemini",
+    };
+  } else if (openaiKey) {
+    return {
+      client: new OpenAI({
+        apiKey: openaiKey,
+      }),
+      model: "gpt-4o-mini",
+      provider: "OpenAI",
+    };
+  }
+  return null;
+}
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader("Access-Control-Allow-Credentials", "true");
@@ -25,15 +50,15 @@ export default async function handler(req, res) {
       return res.status(400).json({ summary: "Text parameter is required." });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ summary: "Server configuration error: OPENAI_API_KEY environment variable is not set on Vercel." });
+    const ai = getAIClient();
+    if (!ai) {
+      return res.status(500).json({
+        summary: "Server configuration error: Neither GEMINI_API_KEY nor OPENAI_API_KEY environment variable is configured on the server."
+      });
     }
 
-    const openai = new OpenAI({ apiKey });
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const response = await ai.client.chat.completions.create({
+      model: ai.model,
       messages: [
         {
           role: "user",
@@ -45,6 +70,6 @@ export default async function handler(req, res) {
     res.status(200).json({ summary: response.choices[0].message.content });
   } catch (err) {
     console.error("Summarize Error:", err);
-    res.status(500).json({ summary: `AI Error: ${err.message || "Failed to process request."}` });
+    res.status(500).json({ summary: `AI Error (${err.status || 500}): ${err.message || "Failed to process request."}` });
   }
 }

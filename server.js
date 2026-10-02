@@ -15,16 +15,40 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// Initialize OpenAI client dynamically per request or fallback
-function getOpenAIClient() {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return null;
-  return new OpenAI({ apiKey });
+function getAIClient() {
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
+
+  if (geminiKey) {
+    return {
+      client: new OpenAI({
+        apiKey: geminiKey,
+        baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+      }),
+      model: "gemini-2.5-flash",
+      provider: "Gemini",
+    };
+  } else if (openaiKey) {
+    return {
+      client: new OpenAI({
+        apiKey: openaiKey,
+      }),
+      model: "gpt-4o-mini",
+      provider: "OpenAI",
+    };
+  }
+  return null;
 }
 
 // Health route
 app.get("/health", (req, res) => {
-  res.json({ status: "ok", time: new Date().toISOString() });
+  const ai = getAIClient();
+  res.json({
+    status: "ok",
+    aiConfigured: !!ai,
+    provider: ai ? ai.provider : "None",
+    time: new Date().toISOString()
+  });
 });
 
 // Chat handler
@@ -35,13 +59,13 @@ async function handleChat(req, res) {
       return res.status(400).json({ reply: "Message parameter is required." });
     }
 
-    const openai = getOpenAIClient();
-    if (!openai) {
-      return res.status(500).json({ reply: "Server error: OPENAI_API_KEY environment variable is not configured on the server." });
+    const ai = getAIClient();
+    if (!ai) {
+      return res.status(500).json({ reply: "Server error: Neither GEMINI_API_KEY nor OPENAI_API_KEY environment variable is set." });
     }
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const response = await ai.client.chat.completions.create({
+      model: ai.model,
       messages: [
         {
           role: "system",
@@ -54,8 +78,7 @@ async function handleChat(req, res) {
     res.json({ reply: response.choices[0].message.content });
   } catch (err) {
     console.error("Chat error:", err);
-    const errMsg = err?.message || "Error connecting to AI server.";
-    res.status(500).json({ reply: `AI Error: ${errMsg}` });
+    res.status(500).json({ reply: `AI Error (${err.status || 500}): ${err.message || "Error connecting to AI server."}` });
   }
 }
 
@@ -67,13 +90,13 @@ async function handleSummarize(req, res) {
       return res.status(400).json({ summary: "Text parameter is required." });
     }
 
-    const openai = getOpenAIClient();
-    if (!openai) {
-      return res.status(500).json({ summary: "Server error: OPENAI_API_KEY environment variable is not configured on the server." });
+    const ai = getAIClient();
+    if (!ai) {
+      return res.status(500).json({ summary: "Server error: Neither GEMINI_API_KEY nor OPENAI_API_KEY environment variable is set." });
     }
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const response = await ai.client.chat.completions.create({
+      model: ai.model,
       messages: [
         {
           role: "user",
@@ -85,8 +108,7 @@ async function handleSummarize(req, res) {
     res.json({ summary: response.choices[0].message.content });
   } catch (err) {
     console.error("Summarize error:", err);
-    const errMsg = err?.message || "Error summarizing text.";
-    res.status(500).json({ summary: `AI Error: ${errMsg}` });
+    res.status(500).json({ summary: `AI Error (${err.status || 500}): ${err.message || "Error summarizing text."}` });
   }
 }
 
@@ -95,7 +117,6 @@ app.post("/api/chat", handleChat);
 app.post("/summarize", handleSummarize);
 app.post("/api/summarize", handleSummarize);
 
-// Only listen if run directly via Node.js
 if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
@@ -103,4 +124,4 @@ if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
   });
 }
 
-export default app;
+export default app;
