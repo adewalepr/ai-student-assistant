@@ -15,7 +15,7 @@ async function callAI(prompt, systemInstruction = "") {
     }
     contents.push({ role: "user", parts: [{ text: prompt }] });
 
-    const models = ["gemini-2.0-flash", "gemini-1.5-flash"];
+    const models = ["gemini-3.8-flash", "gemini-1.5-flash"];
     let firstErrorMsg = "";
 
     for (const model of models) {
@@ -38,7 +38,10 @@ async function callAI(prompt, systemInstruction = "") {
 
       // Stop immediately on API Key / Permission errors
       if (res.status === 400 || res.status === 403 || errMsg.toLowerCase().includes("key")) {
-        throw new Error(`Gemini API Error: ${errMsg}`);
+        // If the error is specifically model deprecated/not found, continue to next model in loop
+        if (!errMsg.includes("no longer available") && !errMsg.includes("not found")) {
+          throw new Error(`Gemini API Error: ${errMsg}`);
+        }
       }
     }
 
