@@ -1,16 +1,11 @@
 import OpenAI from "openai";
 
-const GEMINI_MODELS = [
-  "gemini-2.0-flash",
-  "gemini-1.5-flash-latest",
-  "gemini-1.5-flash",
-  "gemini-1.5-pro-latest",
-  "gemini-pro"
-];
-
 async function callAI(prompt, systemInstruction = "") {
-  const geminiKey = process.env.GEMINI_API_KEY;
-  const openaiKey = process.env.OPENAI_API_KEY;
+  const rawGeminiKey = process.env.GEMINI_API_KEY || "";
+  const geminiKey = rawGeminiKey.replace(/^["']|["']$/g, "").trim();
+
+  const rawOpenAIKey = process.env.OPENAI_API_KEY || "";
+  const openaiKey = rawOpenAIKey.replace(/^["']|["']$/g, "").trim();
 
   if (geminiKey) {
     const contents = [];
@@ -20,39 +15,38 @@ async function callAI(prompt, systemInstruction = "") {
     }
     contents.push({ role: "user", parts: [{ text: prompt }] });
 
-    let lastError = null;
+    const models = ["gemini-2.0-flash", "gemini-1.5-flash"];
+    let firstErrorMsg = "";
 
-    for (const model of GEMINI_MODELS) {
-      try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey.trim()}`;
-        const res = await fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contents }),
-        });
+    for (const model of models) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents }),
+      });
 
-        const data = await res.json();
+      const data = await res.json();
 
-        if (res.ok) {
-          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (text) return text;
-        } else {
-          lastError = data.error?.message || `Status ${res.status}`;
-          if (data.error?.status === "INVALID_ARGUMENT" || data.error?.reason === "API_KEY_INVALID") {
-            throw new Error(`Gemini API Key Error: ${lastError}`);
-          }
-        }
-      } catch (err) {
-        if (err.message.includes("Gemini API Key Error")) throw err;
-        lastError = err.message;
+      if (res.ok) {
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) return text;
+      }
+
+      const errMsg = data.error?.message || `HTTP ${res.status}`;
+      if (!firstErrorMsg) firstErrorMsg = errMsg;
+
+      // Stop immediately on API Key / Permission errors
+      if (res.status === 400 || res.status === 403 || errMsg.toLowerCase().includes("key")) {
+        throw new Error(`Gemini API Error: ${errMsg}`);
       }
     }
 
-    throw new Error(`Gemini API Error: ${lastError || "Could not connect to any Gemini model."}`);
+    throw new Error(`Gemini API Error: ${firstErrorMsg || "Failed to generate content."}`);
   }
 
   if (openaiKey) {
-    const openai = new OpenAI({ apiKey: openaiKey.trim() });
+    const openai = new OpenAI({ apiKey: openaiKey });
     const messages = [];
     if (systemInstruction) {
       messages.push({ role: "system", content: systemInstruction });
