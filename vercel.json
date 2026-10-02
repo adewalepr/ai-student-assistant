@@ -1,39 +1,25 @@
 {
   "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "server.js",
-      "use": "@vercel/node"
+      "source": "/chat",
+      "destination": "/server.js"
     },
     {
-      "src": "index.html",
-      "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/chat",
-      "dest": "server.js"
+      "source": "/summarize",
+      "destination": "/server.js"
     },
     {
-      "src": "/summarize",
-      "dest": "server.js"
+      "source": "/api/chat",
+      "destination": "/server.js"
     },
     {
-      "src": "/api/chat",
-      "dest": "server.js"
+      "source": "/api/summarize",
+      "destination": "/server.js"
     },
     {
-      "src": "/api/summarize",
-      "dest": "server.js"
-    },
-    {
-      "src": "/health",
-      "dest": "server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/health",
+      "destination": "/server.js"
     }
   ]
 }
