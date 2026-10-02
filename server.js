@@ -25,7 +25,7 @@ function getAIClient() {
         apiKey: geminiKey,
         baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
       }),
-      model: "gemini-2.5-flash",
+      model: "gemini-1.5-flash",
       provider: "Gemini",
     };
   } else if (openaiKey) {
